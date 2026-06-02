@@ -5,11 +5,13 @@
  */
 
 // --- Chemins ---------------------------------------------------------------
-define('BASE_DIR',     __DIR__);
-define('UPLOADS_DIR',  BASE_DIR . '/uploads');
-define('SLIDES_FILE',  BASE_DIR . '/slides.json');
+define('BASE_DIR',     __DIR__);                       // racine web (/var/www/html)
+// Données HORS de la racine web : robuste (montage de dossier) et non exposées.
+define('DATA_DIR',     dirname(BASE_DIR) . '/data');   // /var/www/data
+define('UPLOADS_DIR',  DATA_DIR . '/uploads');
+define('SLIDES_FILE',  DATA_DIR . '/slides.json');
 
-// URL publique du dossier d'uploads (vue depuis le navigateur)
+// URL publique des fichiers (Apache mappe /uploads -> DATA_DIR/uploads via Alias)
 define('UPLOADS_URL',  'uploads');
 
 // --- Sécurité --------------------------------------------------------------

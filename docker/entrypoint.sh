@@ -1,11 +1,14 @@
 #!/bin/sh
 set -e
 
-# Les volumes montés depuis l'hôte n'ont pas forcément le bon propriétaire.
-# Apache tourne en www-data : on lui donne la main sur les données
-# persistantes pour éviter les erreurs d'écriture silencieuses.
-chown -R www-data:www-data /var/www/html/uploads
-chown www-data:www-data /var/www/html/slides.json 2>/dev/null || true
+# Le volume monté (/var/www/data) peut être vide au premier démarrage.
+# On garantit la structure et un slides.json valide : plus aucune init manuelle.
+mkdir -p /var/www/data/uploads
+if [ ! -f /var/www/data/slides.json ]; then
+    echo "[]" > /var/www/data/slides.json
+fi
 
-# Démarre la commande passée (par défaut apache2-foreground)
+# Apache (www-data) doit pouvoir écrire dans les données persistantes.
+chown -R www-data:www-data /var/www/data
+
 exec "$@"

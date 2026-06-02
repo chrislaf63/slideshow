@@ -8,9 +8,8 @@ services:
       # dans un fichier .env non versionné (voir README).
       ADMIN_PASSWORD: "change-me"
     volumes:
-      # DONNÉES PERSISTANTES (vivent hors de l'image)
-      # - les fichiers uploadés et les images générées depuis les PDF
-      - ./data/uploads:/var/www/html/uploads
-      # - la liste ordonnée des slides
-      - ./data/slides.json:/var/www/html/slides.json
+      # DONNÉES PERSISTANTES : un seul dossier monté, hors de la racine web.
+      # (Monter un DOSSIER évite le piège du fichier que Docker transforme en
+      #  répertoire s'il n'existe pas encore côté hôte.)
+      - ./data:/var/www/data
     restart: unless-stopped
