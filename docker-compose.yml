@@ -1,0 +1,16 @@
+services:
+  slideshow:
+    build: .
+    ports:
+      - "8080:80"
+    environment:
+      # Mot de passe du back-office : à changer, et idéalement à sortir
+      # dans un fichier .env non versionné (voir README).
+      ADMIN_PASSWORD: "change-me"
+    volumes:
+      # DONNÉES PERSISTANTES (vivent hors de l'image)
+      # - les fichiers uploadés et les images générées depuis les PDF
+      - ./data/uploads:/var/www/html/uploads
+      # - la liste ordonnée des slides
+      - ./data/slides.json:/var/www/html/slides.json
+    restart: unless-stopped

@@ -1,0 +1,267 @@
+/* ============================================================================
+   admin.css — Back-office du diaporama
+   Direction : « papier & encre » utilitaire. Fond crème, encre charbon,
+   un seul accent ember. Typo Fraunces (titres) + IBM Plex Sans/Mono (UI).
+   ========================================================================== */
+
+:root {
+    --paper:      #f4f1ea;
+    --paper-2:    #ece7dc;
+    --ink:        #1f1b16;
+    --ink-soft:   #5c554a;
+    --ink-faint:  #908778;
+    --line:       #d8d1c2;
+    --ember:      #c8553d;
+    --ember-dark: #a8412e;
+    --ok:         #4a7a4a;
+    --radius:     10px;
+    --shadow:     0 1px 2px rgba(31,27,22,.06), 0 8px 24px rgba(31,27,22,.07);
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: "IBM Plex Sans", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* texture papier discrète */
+body::before {
+    content: "";
+    position: fixed; inset: 0;
+    pointer-events: none;
+    background-image: radial-gradient(rgba(31,27,22,.025) 1px, transparent 1px);
+    background-size: 4px 4px;
+    z-index: 0;
+}
+body > * { position: relative; z-index: 1; }
+
+/* ----------------------------------------------------------- Boutons / champs */
+.btn {
+    font: 500 .82rem/1 "IBM Plex Sans", sans-serif;
+    letter-spacing: .01em;
+    padding: .62rem 1rem;
+    border-radius: var(--radius);
+    border: 1px solid transparent;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-flex; align-items: center; gap: .4rem;
+    transition: transform .12s ease, background .15s ease, border-color .15s ease;
+}
+.btn:active { transform: translateY(1px); }
+.btn--primary { background: var(--ember); color: #fff; }
+.btn--primary:hover { background: var(--ember-dark); }
+.btn--ghost {
+    background: transparent; color: var(--ink-soft);
+    border-color: var(--line);
+}
+.btn--ghost:hover { border-color: var(--ink-faint); color: var(--ink); }
+
+.linklike {
+    background: none; border: none; padding: 0;
+    color: var(--ember); font: inherit; cursor: pointer;
+    text-decoration: underline; text-underline-offset: 2px;
+}
+
+/* ================================================================ CONNEXION */
+.is-login { display: grid; place-items: center; min-height: 100vh; }
+.login__card {
+    width: min(92vw, 360px);
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 2.4rem 2rem 2rem;
+    box-shadow: var(--shadow);
+}
+.login__kicker {
+    margin: 0;
+    font: 500 .72rem/1 "IBM Plex Mono", monospace;
+    letter-spacing: .22em; text-transform: uppercase;
+    color: var(--ember);
+}
+.login__title {
+    margin: .35rem 0 1.6rem;
+    font: 600 2rem/1 "Fraunces", serif;
+    letter-spacing: -.01em;
+}
+.login__error {
+    margin: 0 0 1rem;
+    font-size: .85rem; color: var(--ember-dark);
+    background: rgba(200,85,61,.08);
+    border-left: 3px solid var(--ember);
+    padding: .55rem .7rem; border-radius: 4px;
+}
+.field { display: block; margin-bottom: 1.2rem; }
+.field__label {
+    display: block; margin-bottom: .4rem;
+    font: 500 .72rem/1 "IBM Plex Mono", monospace;
+    letter-spacing: .12em; text-transform: uppercase;
+    color: var(--ink-faint);
+}
+.field__input {
+    width: 100%;
+    font: 400 1rem/1 "IBM Plex Sans", sans-serif;
+    padding: .7rem .8rem;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--paper);
+    color: var(--ink);
+    transition: border-color .15s ease, box-shadow .15s ease;
+}
+.field__input:focus {
+    outline: none; border-color: var(--ember);
+    box-shadow: 0 0 0 3px rgba(200,85,61,.15);
+}
+.login .btn--primary { width: 100%; justify-content: center; padding: .8rem; }
+
+/* ================================================================= TOPBAR */
+.topbar {
+    display: flex; align-items: flex-end; justify-content: space-between;
+    gap: 1rem; flex-wrap: wrap;
+    padding: 1.6rem clamp(1rem, 4vw, 3rem) 1.2rem;
+    border-bottom: 1px solid var(--line);
+}
+.topbar__kicker {
+    font: 500 .72rem/1 "IBM Plex Mono", monospace;
+    letter-spacing: .22em; text-transform: uppercase; color: var(--ember);
+}
+.topbar__title {
+    margin: .25rem 0 0;
+    font: 600 1.9rem/1 "Fraunces", serif; letter-spacing: -.01em;
+}
+.topbar__actions { display: flex; align-items: center; gap: .6rem; flex-wrap: wrap; }
+.count {
+    font: 500 .8rem/1 "IBM Plex Mono", monospace;
+    color: var(--ink-soft);
+    background: var(--paper-2);
+    border: 1px solid var(--line);
+    padding: .5rem .7rem; border-radius: var(--radius);
+}
+.count::after { content: " slides"; color: var(--ink-faint); }
+
+/* ================================================================== LAYOUT */
+.wrap { padding: clamp(1rem, 4vw, 3rem); max-width: 1200px; margin: 0 auto; }
+
+/* ------------------------------------------------------------- Dropzone */
+.dropzone {
+    border: 2px dashed var(--line);
+    border-radius: 14px;
+    background: linear-gradient(180deg, #fff, var(--paper));
+    transition: border-color .18s ease, background .18s ease;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+}
+.dropzone:hover { border-color: var(--ink-faint); }
+.dropzone.is-drag {
+    border-color: var(--ember);
+    background: rgba(200,85,61,.05);
+}
+.dropzone__inner {
+    display: flex; flex-direction: column; align-items: center; gap: .3rem;
+    padding: 2.6rem 1rem;
+    text-align: center;
+}
+.dropzone__icon {
+    font-size: 2rem; line-height: 1;
+    color: var(--ember);
+    width: 3rem; height: 3rem; border-radius: 50%;
+    display: grid; place-items: center;
+    background: rgba(200,85,61,.1);
+    margin-bottom: .4rem;
+}
+.dropzone__text { margin: 0; font-size: .98rem; color: var(--ink); }
+.dropzone__hint {
+    margin: .2rem 0 0;
+    font: 400 .78rem/1.3 "IBM Plex Mono", monospace; color: var(--ink-faint);
+}
+.dropzone__progress {
+    font: 500 .82rem/1 "IBM Plex Mono", monospace;
+    color: var(--ember-dark);
+    padding: 0 0 1.2rem; text-align: center;
+}
+
+/* ------------------------------------------------------------- Hints */
+.hint {
+    font: 400 .8rem/1.4 "IBM Plex Mono", monospace;
+    color: var(--ink-faint);
+}
+.hint--reorder { margin: 2rem 0 .8rem; }
+
+/* ------------------------------------------------------------- Grille */
+.grid {
+    list-style: none; margin: 0; padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(168px, 1fr));
+    gap: 1rem;
+}
+.card {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    transition: transform .12s ease, box-shadow .15s ease;
+}
+.card.sortable-ghost { opacity: .35; }
+.card.sortable-chosen { box-shadow: 0 10px 30px rgba(31,27,22,.18); }
+.card__thumb {
+    position: relative;
+    aspect-ratio: 4 / 3;
+    background: var(--paper-2);
+    display: grid; place-items: center;
+}
+.card__thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.card__handle {
+    position: absolute; top: .4rem; left: .4rem;
+    width: 1.7rem; height: 1.7rem;
+    display: grid; place-items: center;
+    background: rgba(255,255,255,.85);
+    border-radius: 6px;
+    color: var(--ink-soft);
+    cursor: grab; font-size: 1rem;
+    backdrop-filter: blur(2px);
+}
+.card__handle:active { cursor: grabbing; }
+.card__foot {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: .5rem; padding: .55rem .65rem;
+}
+.card__name {
+    font: 400 .76rem/1.2 "IBM Plex Mono", monospace;
+    color: var(--ink-soft);
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.card__del {
+    flex: none;
+    width: 1.6rem; height: 1.6rem;
+    border: 1px solid var(--line); border-radius: 6px;
+    background: transparent; color: var(--ink-faint);
+    cursor: pointer; font-size: .8rem; line-height: 1;
+    transition: all .14s ease;
+}
+.card__del:hover {
+    background: var(--ember); color: #fff; border-color: var(--ember);
+}
+
+/* ------------------------------------------------------------- Vide / toast */
+.empty {
+    text-align: center; color: var(--ink-faint);
+    font-size: .95rem; padding: 3rem 1rem;
+    border: 1px dashed var(--line); border-radius: 14px;
+}
+.toast {
+    position: fixed; bottom: 1.4rem; left: 50%; transform: translateX(-50%) translateY(1rem);
+    background: var(--ink); color: var(--paper);
+    font: 500 .85rem/1 "IBM Plex Sans", sans-serif;
+    padding: .7rem 1.1rem; border-radius: 999px;
+    box-shadow: 0 8px 30px rgba(0,0,0,.25);
+    opacity: 0; pointer-events: none;
+    transition: opacity .2s ease, transform .2s ease;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+.toast--ok::before    { content: "✓ "; color: #8fd08f; }
+.toast--error::before { content: "! "; color: #ff9b8a; }

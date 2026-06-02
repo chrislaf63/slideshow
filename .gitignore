@@ -1,0 +1,8 @@
+# Données runtime : ne pas versionner le contenu
+/data/uploads/*
+!/data/uploads/.gitkeep
+/data/slides.json
+
+# Secrets
+.env
+CLAUDE.md

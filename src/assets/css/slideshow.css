@@ -1,0 +1,121 @@
+/* ============================================================================
+   slideshow.css — Diaporama public
+   Scène sombre et chaude pour faire ressortir les images de tout format.
+   Accent ember repris du back-office. Pas de webfont : la page d'affichage
+   reste légère (peu de texte, contrôles en glyphes).
+   ========================================================================== */
+
+:root {
+    --stage:  #16130f;       /* presque noir, légèrement chaud */
+    --stage-2:#221d17;
+    --ember:  #c8553d;
+    --light:  #f4f1ea;
+    --dim:    rgba(244,241,234,.55);
+    --fade:   800ms;         /* surchargé par le JS depuis la config PHP */
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+    margin: 0; height: 100%;
+    background: var(--stage);
+    color: var(--light);
+    font-family: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+    overflow: hidden;
+}
+
+/* atmosphère : léger halo radial + grain */
+body::before {
+    content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 0;
+    background:
+        radial-gradient(120% 90% at 50% 40%, var(--stage-2), var(--stage) 70%);
+}
+body::after {
+    content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 3;
+    opacity: .04;
+    background-image: radial-gradient(rgba(255,255,255,.6) .5px, transparent .5px);
+    background-size: 3px 3px;
+}
+
+/* ============================================================== SCÈNE */
+.stage {
+    position: fixed; inset: 0;
+    display: grid; place-items: center;
+    z-index: 1;
+}
+.stage--empty { z-index: 1; }
+.empty { color: var(--dim); font-size: .95rem; letter-spacing: .04em; }
+
+/* ----------------------------------------------------- Couches d'images */
+.layers { position: absolute; inset: 0; }
+.layers .slide {
+    position: absolute; inset: 0;
+    display: grid; place-items: center;
+    opacity: 0;
+    transition: opacity var(--fade) ease;
+    will-change: opacity;
+}
+.layers .slide.is-active { opacity: 1; }
+.layers .slide img {
+    max-width: 100%; max-height: 100%;
+    width: auto; height: auto;
+    object-fit: contain;            /* aucun recadrage, tout format respecté */
+    /* ombre douce pour décoller l'image du fond sombre */
+    filter: drop-shadow(0 18px 50px rgba(0,0,0,.55));
+}
+
+/* ===================================================== BARRE DE PROGRESSION */
+.progress {
+    position: fixed; left: 0; top: 0; right: 0; height: 3px;
+    background: rgba(244,241,234,.08);
+    z-index: 4;
+}
+.progress__bar {
+    display: block; height: 100%; width: 0;
+    background: var(--ember);
+    transform-origin: left;
+}
+
+/* =============================================================== CONTRÔLES */
+.controls {
+    position: fixed; left: 50%; bottom: 1.6rem;
+    transform: translateX(-50%) translateY(.6rem);
+    display: flex; align-items: center; gap: .4rem;
+    padding: .4rem .5rem;
+    background: rgba(20,16,12,.6);
+    border: 1px solid rgba(244,241,234,.1);
+    border-radius: 999px;
+    backdrop-filter: blur(10px);
+    z-index: 5;
+    opacity: 0; pointer-events: none;
+    transition: opacity .3s ease, transform .3s ease;
+}
+.controls.show { opacity: 1; pointer-events: auto; transform: translateX(-50%) translateY(0); }
+
+.ctrl {
+    appearance: none; border: none; cursor: pointer;
+    width: 2.4rem; height: 2.4rem;
+    display: grid; place-items: center;
+    background: transparent; color: var(--light);
+    border-radius: 50%;
+    font-size: 1.3rem; line-height: 1;
+    transition: background .15s ease, color .15s ease, transform .1s ease;
+}
+.ctrl:hover { background: rgba(244,241,234,.1); }
+.ctrl:active { transform: scale(.92); }
+.ctrl--play { color: var(--ember); font-size: 1rem; }
+.ctrl--fs { font-size: 1.1rem; }
+
+.counter {
+    min-width: 3.4rem; text-align: center;
+    font-size: .8rem; letter-spacing: .08em; color: var(--dim);
+    padding: 0 .2rem;
+}
+
+/* curseur masqué quand les contrôles le sont (mode affichage) */
+body.idle { cursor: none; }
+
+@media (max-width: 520px) {
+    .controls { bottom: 1rem; }
+    .ctrl { width: 2.2rem; height: 2.2rem; }
+}
