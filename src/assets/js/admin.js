@@ -187,5 +187,79 @@
         }
     }
 
+    // ------------------------------------------------- Image fixe (volet droit)
+    const fixedInput      = document.getElementById('fixedInput');
+    const fixedPick       = document.getElementById('fixedPick');
+    const fixedPickLabel  = document.getElementById('fixedPickLabel');
+    const fixedRemove     = document.getElementById('fixedRemove');
+    const fixedPreview    = document.getElementById('fixedPreview');
+    const fixedName       = document.getElementById('fixedName');
+    const fixedPlaceholder = document.querySelector('.fixed__placeholder');
+
+    if (fixedPick) {
+        fixedPick.addEventListener('click', function () { fixedInput.click(); });
+
+        fixedInput.addEventListener('change', async function () {
+            if (!fixedInput.files.length) return;
+            const fd = new FormData();
+            fd.append('file', fixedInput.files[0]);
+            fixedInput.value = '';
+            try {
+                const res = await fetch('api/fixed_upload.php', { method: 'POST', body: fd });
+                const text = await res.text();
+                let data;
+                try { data = JSON.parse(text); }
+                catch (e) {
+                    console.error('Réponse fixed_upload non-JSON', res.status, text);
+                    toast('Erreur serveur ' + res.status + ' — voir la console', 'error');
+                    return;
+                }
+                if (res.status === 401 || data.error === 'unauthorized') {
+                    toast('Session expirée — reconnectez-vous', 'error');
+                    return;
+                }
+                if (data.ok && data.fixed) {
+                    setFixed(data.fixed);
+                    toast('Image fixe enregistrée', 'ok');
+                } else {
+                    toast('Image refusée' + (data.error ? ' (' + data.error + ')' : ''), 'error');
+                }
+            } catch (err) {
+                console.error(err);
+                toast('Erreur réseau', 'error');
+            }
+        });
+
+        fixedRemove.addEventListener('click', async function () {
+            if (!confirm('Retirer l\'image fixe ?')) return;
+            try {
+                const res  = await fetch('api/fixed_clear.php', { method: 'POST' });
+                const data = await res.json();
+                if (data.ok) { clearFixed(); toast('Image fixe retirée', 'ok'); }
+                else toast('Suppression impossible', 'error');
+            } catch (err) {
+                toast('Erreur réseau', 'error');
+            }
+        });
+    }
+
+    function setFixed(fx) {
+        fixedPreview.src = 'uploads/' + esc(fx.file);
+        fixedPreview.alt = fx.name || '';
+        fixedPreview.hidden = false;
+        if (fixedPlaceholder) fixedPlaceholder.hidden = true;
+        fixedName.textContent = fx.name || '';
+        fixedPickLabel.textContent = 'Remplacer';
+        fixedRemove.hidden = false;
+    }
+    function clearFixed() {
+        fixedPreview.removeAttribute('src');
+        fixedPreview.hidden = true;
+        if (fixedPlaceholder) fixedPlaceholder.hidden = false;
+        fixedName.textContent = '';
+        fixedPickLabel.textContent = 'Choisir une image';
+        fixedRemove.hidden = true;
+    }
+
     refreshCount();
 })();

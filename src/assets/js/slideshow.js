@@ -1,9 +1,9 @@
 /* ============================================================================
-   slideshow.js — Moteur du diaporama
-   Fondu enchaîné à deux couches, autoplay, préchargement, contrôles, clavier,
-   plein écran, masquage auto, et RAFRAÎCHISSEMENT À CHAUD : la liste est
-   re-vérifiée périodiquement et les changements (ajout / suppression / ordre)
-   sont appliqués au bouclage, sans recharger la page.
+   slideshow.js — Moteur du diaporama (affichage en deux volets)
+   Volet gauche : diaporama (fondu, autoplay, contrôles, clavier, plein écran).
+   Volet droit : image fixe optionnelle.
+   Rafraîchissement à chaud via api/state.php : les slides changent au bouclage,
+   l'image fixe est mise à jour immédiatement, sans recharger la page.
    ========================================================================== */
 
 (function () {
@@ -17,6 +17,8 @@
 
     document.documentElement.style.setProperty('--fade', cfg.fade + 'ms');
 
+    const split    = document.getElementById('split');
+    const fixedImg  = document.getElementById('fixedImg');
     const layers   = document.getElementById('layers');
     const bar      = document.getElementById('bar');
     const progress = document.getElementById('progress');
@@ -25,13 +27,13 @@
     const emptyEl  = document.getElementById('empty');
     const playBtn  = document.getElementById('play');
 
-    // Deux couches alternées pour le fondu
     const lyrs = [makeLayer(), makeLayer()];
     layers.append(lyrs[0], lyrs[1]);
     let front = 0;
 
     let current = 0, playing = true, timer = null, raf = null, t0 = 0;
     let pending = null, polling = null, errSkips = 0;
+    let fixedSig = window.FIXED && window.FIXED.file ? window.FIXED.file : '';
 
     function makeLayer() {
         const d = document.createElement('div');
@@ -41,7 +43,6 @@
         d.appendChild(im);
         return d;
     }
-    // Si une image a disparu (supprimée côté serveur pendant la boucle), on saute
     function onImgError() {
         if (slides.length > 1 && errSkips < slides.length) { errSkips++; swapTo(current + 1); }
     }
@@ -67,7 +68,22 @@
 
     function preload(i) { const im = new Image(); im.src = srcFor(i); }
 
-    // --- Fondu vers un index (sans logique de boucle) -----------------------
+    // --- Volet droit : image fixe -------------------------------------------
+    function applyFixed(fx) {
+        const has = fx && fx.file;
+        split.classList.toggle('has-fixed', !!has);
+        if (has) {
+            fixedImg.src = cfg.uploads + '/' + fx.file;
+            fixedImg.alt = fx.name || '';
+            fixedImg.hidden = false;
+        } else {
+            fixedImg.removeAttribute('src');
+            fixedImg.hidden = true;
+        }
+        fixedSig = has ? fx.file : '';
+    }
+
+    // --- Fondu vers un index ------------------------------------------------
     function swapTo(index) {
         if (!slides.length) return;
         index = (index + slides.length) % slides.length;
@@ -83,7 +99,6 @@
         restart();
     }
 
-    // --- Avance, en appliquant les mises à jour en fin de boucle ------------
     function next() {
         if (!slides.length) return;
         if (pending && current === slides.length - 1) { applyPending(); return; }
@@ -91,7 +106,6 @@
     }
     function prev() { if (slides.length) swapTo(current - 1); }
 
-    // Applique une liste en attente : repart de la première slide
     function applyPending() {
         const incoming = pending; pending = null;
         slides = incoming;
@@ -138,8 +152,9 @@
         if (playing) restart(); else stopAuto();
     }
 
-    // --- Démarrage / état initial -------------------------------------------
+    // --- Démarrage ----------------------------------------------------------
     function boot() {
+        applyFixed(window.FIXED);
         if (!slides.length) {
             goEmpty();
         } else {
@@ -154,7 +169,7 @@
         startPolling();
     }
 
-    // --- Vérification périodique des changements ----------------------------
+    // --- Vérification périodique (slides + image fixe) ----------------------
     function startPolling() {
         if (polling) return;
         polling = setInterval(checkUpdates, cfg.poll);
@@ -162,15 +177,21 @@
     async function checkUpdates() {
         if (document.hidden) return;
         try {
-            const res = await fetch('api/slides.php', { cache: 'no-store' });
+            const res = await fetch('api/state.php', { cache: 'no-store' });
             if (!res.ok) return;
-            const list = await res.json();
-            if (!Array.isArray(list)) return;
+            const state = await res.json();
+            if (!state || typeof state !== 'object') return;
 
-            if (sig(list) === sig(slides)) { pending = null; return; } // en phase
+            // Image fixe : appliquée tout de suite (hors boucle)
+            const fx = state.fixed || null;
+            const newFixedSig = fx && fx.file ? fx.file : '';
+            if (newFixedSig !== fixedSig) applyFixed(fx);
+
+            // Slides : appliquées au bouclage
+            const list = Array.isArray(state.slides) ? state.slides : [];
+            if (sig(list) === sig(slides)) { pending = null; return; }
 
             if (!slides.length) {
-                // Le diaporama était vide : on démarre immédiatement
                 slides = list; pending = null;
                 setEmpty(false);
                 front = 0; current = 0;
@@ -181,12 +202,12 @@
                 if (slides.length > 1) preload(1 % slides.length);
                 restart();
             } else {
-                pending = list; // appliqué au prochain bouclage
+                pending = list;
             }
-        } catch (e) { /* réseau indisponible : on réessaiera au prochain tick */ }
+        } catch (e) { /* réseau indisponible : on réessaiera */ }
     }
 
-    // --- Contrôles ----------------------------------------------------------
+    // --- Contrôles / clavier / plein écran / inactivité ---------------------
     document.getElementById('next').addEventListener('click', next);
     document.getElementById('prev').addEventListener('click', prev);
     playBtn.addEventListener('click', function () { setPlaying(!playing); });
@@ -200,7 +221,6 @@
         }
     }
 
-    // --- Clavier ------------------------------------------------------------
     document.addEventListener('keydown', function (e) {
         switch (e.key) {
             case 'ArrowRight': next(); break;
@@ -210,7 +230,6 @@
         }
     });
 
-    // --- Masquage auto des contrôles et du curseur --------------------------
     let idleTimer;
     function wake() {
         if (slides.length) controls.classList.add('show');

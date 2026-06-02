@@ -1,8 +1,7 @@
 /* ============================================================================
-   slideshow.css — Diaporama public
+   slideshow.css — Diaporama public (affichage en deux volets)
+   Volet gauche : diaporama. Volet droit : image fixe (optionnelle).
    Scène sombre et chaude pour faire ressortir les images de tout format.
-   Accent ember repris du back-office. Pas de webfont : la page d'affichage
-   reste légère (peu de texte, contrôles en glyphes).
    ========================================================================== */
 
 :root {
@@ -24,12 +23,7 @@ html, body {
     overflow: hidden;
 }
 
-/* atmosphère : léger halo radial + grain */
-body::before {
-    content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 0;
-    background:
-            radial-gradient(120% 90% at 50% 40%, var(--stage-2), var(--stage) 70%);
-}
+/* grain global discret */
 body::after {
     content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 3;
     opacity: .04;
@@ -37,14 +31,45 @@ body::after {
     background-size: 3px 3px;
 }
 
-/* ============================================================== SCÈNE */
-.stage {
+/* ============================================================== DISPOSITION */
+.split {
     position: fixed; inset: 0;
-    display: grid; place-items: center;
-    z-index: 1;
+    display: flex;
 }
-.stage--empty { z-index: 1; }
-.empty { position: relative; z-index: 2; color: var(--dim); font-size: .95rem; letter-spacing: .04em; }
+.pane { position: relative; height: 100%; }
+
+/* Sans image fixe : le diaporama occupe tout l'écran */
+.pane--show  { flex: 1 1 100%; }
+.pane--fixed { display: none; }
+
+/* Avec image fixe : deux moitiés, séparées par un filet */
+.split.has-fixed .pane--show  { flex: 0 0 50%; }
+.split.has-fixed .pane--fixed {
+    display: block; flex: 0 0 50%;
+    border-left: 1px solid rgba(244,241,234,.1);
+    background:
+            radial-gradient(120% 90% at 50% 40%, var(--stage-2), var(--stage) 70%);
+}
+
+/* Volet droit : l'image fixe, entière et centrée */
+.pane--fixed img {
+    width: 100%; height: 100%;
+    object-fit: contain; object-position: center;
+    display: block;
+}
+
+/* ================================================================ SCÈNE */
+.stage {
+    position: absolute; inset: 0;
+    display: grid; place-items: center;
+    overflow: hidden;
+    background:
+            radial-gradient(120% 90% at 50% 40%, var(--stage-2), var(--stage) 70%);
+}
+.empty {
+    position: relative; z-index: 2;
+    color: var(--dim); font-size: .95rem; letter-spacing: .04em;
+}
 
 /* ----------------------------------------------------- Couches d'images */
 .layers { position: absolute; inset: 0; }
@@ -61,25 +86,23 @@ body::after {
     object-fit: contain;            /* image entière, centrée, sans recadrage */
     object-position: center;
     min-width: 0; min-height: 0;    /* neutralise la taille mini auto de la grille */
-    /* ombre douce pour décoller l'image du fond sombre */
     filter: drop-shadow(0 18px 50px rgba(0,0,0,.55));
 }
 
 /* ===================================================== BARRE DE PROGRESSION */
 .progress {
-    position: fixed; left: 0; top: 0; right: 0; height: 3px;
+    position: absolute; left: 0; top: 0; right: 0; height: 3px;
     background: rgba(244,241,234,.08);
     z-index: 4;
 }
 .progress__bar {
     display: block; height: 100%; width: 0;
     background: var(--ember);
-    transform-origin: left;
 }
 
 /* =============================================================== CONTRÔLES */
 .controls {
-    position: fixed; left: 50%; bottom: 1.6rem;
+    position: absolute; left: 50%; bottom: 1.6rem;
     transform: translateX(-50%) translateY(.6rem);
     display: flex; align-items: center; gap: .4rem;
     padding: .4rem .5rem;
@@ -116,7 +139,15 @@ body::after {
 /* curseur masqué quand les contrôles le sont (mode affichage) */
 body.idle { cursor: none; }
 
-@media (max-width: 520px) {
+/* Écran étroit / portrait : on empile diaporama (haut) et image fixe (bas) */
+@media (max-width: 760px) {
+    .split.has-fixed { flex-direction: column; }
+    .split.has-fixed .pane--show,
+    .split.has-fixed .pane--fixed { flex: 0 0 50%; }
+    .split.has-fixed .pane--fixed {
+        border-left: none;
+        border-top: 1px solid rgba(244,241,234,.1);
+    }
     .controls { bottom: 1rem; }
     .ctrl { width: 2.2rem; height: 2.2rem; }
 }

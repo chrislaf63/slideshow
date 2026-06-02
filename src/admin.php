@@ -8,6 +8,7 @@
 
 require_once __DIR__ . '/lib/auth.php';
 require_once __DIR__ . '/lib/store.php';
+require_once __DIR__ . '/lib/settings.php';
 
 // --- Déconnexion -----------------------------------------------------------
 if (isset($_GET['logout'])) {
@@ -28,6 +29,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['password'])) {
 
 $authed = is_authed();
 $slides = $authed ? slides_all() : [];
+$fixed  = $authed ? fixed_get() : null;
 
 /** Échappement HTML court. */
 function h(string $s): string { return htmlspecialchars($s, ENT_QUOTES, 'UTF-8'); }
@@ -91,6 +93,33 @@ function h(string $s): string { return htmlspecialchars($s, ENT_QUOTES, 'UTF-8')
                 <p class="dropzone__hint">Images et PDF · les PDF deviennent une slide par page</p>
             </div>
             <div class="dropzone__progress" id="progress" hidden></div>
+        </section>
+
+        <!-- Image fixe (volet droit du diaporama) -->
+        <section class="fixed" aria-label="Image fixe">
+            <div class="fixed__head">
+                <h2 class="section-title">Image fixe — volet droit</h2>
+                <p class="hint">Affichée en permanence à droite du diaporama. Laisser vide pour un diaporama plein écran.</p>
+            </div>
+            <input type="file" id="fixedInput" hidden accept="image/*">
+            <div class="fixed__body" id="fixedBody" data-has="<?= $fixed ? '1' : '0' ?>">
+                <div class="fixed__preview">
+                    <img id="fixedPreview"
+                         src="<?= $fixed ? h('uploads/' . $fixed['file']) : '' ?>"
+                         alt="<?= $fixed ? h($fixed['name'] ?? '') : '' ?>"
+                            <?= $fixed ? '' : 'hidden' ?>>
+                    <span class="fixed__placeholder" <?= $fixed ? 'hidden' : '' ?>>Aucune image fixe</span>
+                </div>
+                <div class="fixed__actions">
+                    <span class="fixed__name" id="fixedName"><?= $fixed ? h($fixed['name'] ?? '') : '' ?></span>
+                    <div class="fixed__buttons">
+                        <button type="button" class="btn btn--ghost" id="fixedPick">
+                            <span id="fixedPickLabel"><?= $fixed ? 'Remplacer' : 'Choisir une image' ?></span>
+                        </button>
+                        <button type="button" class="btn btn--ghost" id="fixedRemove" <?= $fixed ? '' : 'hidden' ?>>Retirer</button>
+                    </div>
+                </div>
+            </div>
         </section>
 
         <!-- Liste triable -->
