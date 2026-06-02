@@ -26,8 +26,8 @@ function pdf_to_images(string $pdf_path, string $basename): array
     $prefix = UPLOADS_DIR . '/' . $basename;
 
     $cmd = 'pdftoppm -png -r ' . (int) PDF_DPI . ' '
-         . escapeshellarg($pdf_path) . ' '
-         . escapeshellarg($prefix) . ' 2>/dev/null';
+        . escapeshellarg($pdf_path) . ' '
+        . escapeshellarg($prefix) . ' 2>/dev/null';
     exec($cmd, $output, $code);
     if ($code !== 0) {
         return [];
@@ -40,4 +40,25 @@ function pdf_to_images(string $pdf_path, string $basename): array
     }
     natsort($files);
     return array_map('basename', array_values($files));
+}
+
+/**
+ * Convertit uniquement la PREMIÈRE page d'un PDF en image PNG (pour l'image fixe).
+ * Retourne le nom du fichier généré, ou null en cas d'échec.
+ */
+function pdf_first_page(string $pdf_path, string $basename): ?string
+{
+    $prefix = UPLOADS_DIR . '/' . $basename;
+    $cmd = 'pdftoppm -png -f 1 -l 1 -r ' . (int) PDF_DPI . ' '
+        . escapeshellarg($pdf_path) . ' ' . escapeshellarg($prefix) . ' 2>/dev/null';
+    exec($cmd, $output, $code);
+    if ($code !== 0) {
+        return null;
+    }
+    $files = glob($prefix . '-*.png');
+    if ($files === false || count($files) === 0) {
+        return null;
+    }
+    natsort($files);
+    return basename(reset($files));
 }

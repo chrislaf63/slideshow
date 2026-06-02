@@ -265,3 +265,46 @@ body > * { position: relative; z-index: 1; }
 .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 .toast--ok::before    { content: "✓ "; color: #8fd08f; }
 .toast--error::before { content: "! "; color: #ff9b8a; }
+
+/* ============================================================== IMAGE FIXE */
+.section-title {
+    margin: 0 0 .2rem;
+    font: 600 1.15rem/1.2 "Fraunces", serif; letter-spacing: -.01em;
+}
+.fixed {
+    margin: 2.2rem 0 0;
+    padding: 1.2rem;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    box-shadow: var(--shadow);
+}
+.fixed__head { margin-bottom: 1rem; }
+.fixed__head .hint { margin: 0; }
+.fixed__body {
+    display: flex; align-items: center; gap: 1.2rem;
+    flex-wrap: wrap;
+}
+.fixed__preview {
+    flex: none;
+    width: 160px; aspect-ratio: 4 / 3;
+    border-radius: var(--radius);
+    background: var(--paper-2);
+    border: 1px solid var(--line);
+    display: grid; place-items: center;
+    overflow: hidden;
+}
+.fixed__preview img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.fixed__placeholder {
+    font: 400 .76rem/1.3 "IBM Plex Mono", monospace; color: var(--ink-faint);
+    text-align: center; padding: 0 .5rem;
+}
+.fixed__actions {
+    flex: 1 1 220px;
+    display: flex; flex-direction: column; gap: .7rem; align-items: flex-start;
+}
+.fixed__name {
+    font: 400 .8rem/1.3 "IBM Plex Mono", monospace; color: var(--ink-soft);
+    word-break: break-word;
+}
+.fixed__buttons { display: flex; gap: .5rem; flex-wrap: wrap; }

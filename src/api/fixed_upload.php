@@ -1,12 +1,14 @@
 <?php
 /**
  * POST api/fixed_upload.php — Définit (ou remplace) l'image fixe du volet droit.
- * Champ attendu : un seul fichier image dans `file`.
+ * Champ attendu : un seul fichier dans `file` (image OU PDF).
+ * Pour un PDF, seule la PREMIÈRE page est convertie en image.
  * Réponse JSON : { ok, fixed: {...} } ou { ok:false, error }
  */
 
 require_once __DIR__ . '/../lib/auth.php';
 require_once __DIR__ . '/../lib/settings.php';
+require_once __DIR__ . '/../lib/pdf.php';
 
 api_require_admin();
 header('Content-Type: application/json');
@@ -40,17 +42,39 @@ $imageExt = [
 $finfo = new finfo(FILEINFO_MIME_TYPE);
 $mime  = $finfo->file($f['tmp_name']);
 
-if (!isset($imageExt[$mime])) {
-    // Le volet fixe n'accepte que des images (pas de PDF).
-    echo json_encode(['ok' => false, 'error' => 'unsupported_type', 'mime' => $mime]);
+// --- Cas image -------------------------------------------------------------
+if (isset($imageExt[$mime])) {
+    $stored = slides_gen_id() . '.' . $imageExt[$mime];
+    if (!move_uploaded_file($f['tmp_name'], UPLOADS_DIR . '/' . $stored)) {
+        echo json_encode(['ok' => false, 'error' => 'move_failed']);
+        exit;
+    }
+    echo json_encode(['ok' => true, 'fixed' => fixed_set($stored, $f['name'])]);
     exit;
 }
 
-$stored = slides_gen_id() . '.' . $imageExt[$mime];
-if (!move_uploaded_file($f['tmp_name'], UPLOADS_DIR . '/' . $stored)) {
-    echo json_encode(['ok' => false, 'error' => 'move_failed']);
+// --- Cas PDF (première page seulement) -------------------------------------
+if (in_array($mime, ALLOWED_PDF_MIME, true)) {
+    $pdfTmp = UPLOADS_DIR . '/' . slides_gen_id() . '.pdf';
+    if (!move_uploaded_file($f['tmp_name'], $pdfTmp)) {
+        echo json_encode(['ok' => false, 'error' => 'move_failed']);
+        exit;
+    }
+    if (pdf_page_count($pdfTmp) === 0) {
+        @unlink($pdfTmp);
+        echo json_encode(['ok' => false, 'error' => 'pdf_unreadable']);
+        exit;
+    }
+    $base  = pathinfo($pdfTmp, PATHINFO_FILENAME);
+    $image = pdf_first_page($pdfTmp, $base);
+    @unlink($pdfTmp); // le PDF source n'a plus d'utilité une fois converti
+    if ($image === null) {
+        echo json_encode(['ok' => false, 'error' => 'pdf_convert_failed']);
+        exit;
+    }
+    echo json_encode(['ok' => true, 'fixed' => fixed_set($image, $f['name'])]);
     exit;
 }
 
-$fixed = fixed_set($stored, $f['name']);
-echo json_encode(['ok' => true, 'fixed' => $fixed]);
+// --- Type refusé -----------------------------------------------------------
+echo json_encode(['ok' => false, 'error' => 'unsupported_type', 'mime' => $mime]);

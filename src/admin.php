@@ -99,9 +99,9 @@ function h(string $s): string { return htmlspecialchars($s, ENT_QUOTES, 'UTF-8')
         <section class="fixed" aria-label="Image fixe">
             <div class="fixed__head">
                 <h2 class="section-title">Image fixe — volet droit</h2>
-                <p class="hint">Affichée en permanence à droite du diaporama. Laisser vide pour un diaporama plein écran.</p>
+                <p class="hint">Affichée en permanence à droite du diaporama. Image ou PDF (1re page). Laisser vide pour un diaporama plein écran.</p>
             </div>
-            <input type="file" id="fixedInput" hidden accept="image/*">
+            <input type="file" id="fixedInput" hidden accept="image/*,application/pdf">
             <div class="fixed__body" id="fixedBody" data-has="<?= $fixed ? '1' : '0' ?>">
                 <div class="fixed__preview">
                     <img id="fixedPreview"
