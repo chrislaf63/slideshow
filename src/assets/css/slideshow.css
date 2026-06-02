@@ -28,7 +28,7 @@ html, body {
 body::before {
     content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 0;
     background:
-        radial-gradient(120% 90% at 50% 40%, var(--stage-2), var(--stage) 70%);
+            radial-gradient(120% 90% at 50% 40%, var(--stage-2), var(--stage) 70%);
 }
 body::after {
     content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 3;
@@ -44,7 +44,7 @@ body::after {
     z-index: 1;
 }
 .stage--empty { z-index: 1; }
-.empty { color: var(--dim); font-size: .95rem; letter-spacing: .04em; }
+.empty { position: relative; z-index: 2; color: var(--dim); font-size: .95rem; letter-spacing: .04em; }
 
 /* ----------------------------------------------------- Couches d'images */
 .layers { position: absolute; inset: 0; }

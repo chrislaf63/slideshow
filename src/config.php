@@ -35,3 +35,4 @@ define('PDF_DPI', 150); // résolution de rendu PDF -> PNG
 // --- Diaporama -------------------------------------------------------------
 define('SLIDE_INTERVAL_MS', 5000); // durée d'affichage de chaque slide (ms)
 define('SLIDE_FADE_MS', 800);      // durée du fondu entre deux slides (ms)
+define('SLIDE_POLL_MS', 10000);    // fréquence de vérification des changements (ms)
