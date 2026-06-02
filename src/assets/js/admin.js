@@ -234,10 +234,22 @@
             if (!confirm('Retirer l\'image fixe ?')) return;
             try {
                 const res  = await fetch('api/fixed_clear.php', { method: 'POST' });
-                const data = await res.json();
+                const text = await res.text();
+                let data;
+                try { data = JSON.parse(text); }
+                catch (e) {
+                    console.error('Réponse fixed_clear non-JSON', res.status, text);
+                    toast('Erreur serveur ' + res.status + ' — voir la console', 'error');
+                    return;
+                }
+                if (res.status === 401 || data.error === 'unauthorized') {
+                    toast('Session expirée — reconnectez-vous', 'error');
+                    return;
+                }
                 if (data.ok) { clearFixed(); toast('Image fixe retirée', 'ok'); }
                 else toast('Suppression impossible', 'error');
             } catch (err) {
+                console.error(err);
                 toast('Erreur réseau', 'error');
             }
         });
