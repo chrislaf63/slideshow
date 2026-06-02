@@ -66,19 +66,41 @@
 
         try {
             const res  = await fetch('api/upload.php', { method: 'POST', body: fd });
-            const data = await res.json();
+            const text = await res.text();
 
-            if (data.added && data.added.length) {
-                data.added.forEach(addCard);
-                refreshCount();
+            // Réponse non-JSON = erreur serveur (typiquement une 500 PHP)
+            let data;
+            try {
+                data = JSON.parse(text);
+            } catch (e) {
+                console.error('Réponse upload non-JSON', res.status, text);
+                toast('Erreur serveur ' + res.status + ' — voir la console', 'error');
+                return;
             }
-            if (data.errors && data.errors.length) {
-                toast(data.errors.length + ' fichier(s) refusé(s)', 'error');
+
+            if (res.status === 401 || data.error === 'unauthorized') {
+                toast('Session expirée — reconnectez-vous', 'error');
+                return;
+            }
+
+            const added  = data.added  || [];
+            const errors = data.errors || [];
+
+            added.forEach(addCard);
+            if (added.length) refreshCount();
+
+            if (errors.length) {
+                console.warn('Fichiers refusés', errors);
+                const why = errors[0] && errors[0].error ? ' (' + errors[0].error + ')' : '';
+                toast(errors.length + ' fichier(s) refusé(s)' + why, 'error');
+            } else if (added.length) {
+                toast(added.length + ' slide(s) ajoutée(s)', 'ok');
             } else {
-                toast(data.added.length + ' slide(s) ajoutée(s)', 'ok');
+                toast('Aucun fichier traité' + (data.error ? ' (' + data.error + ')' : ''), 'error');
             }
         } catch (err) {
-            toast('Échec de l\'envoi', 'error');
+            console.error(err);
+            toast('Erreur réseau', 'error');
         } finally {
             progress.hidden = true;
         }
@@ -159,7 +181,7 @@
             });
             const data = await res.json();
             toast(data.ok ? 'Ordre enregistré' : 'Échec de l\'enregistrement',
-                  data.ok ? 'ok' : 'error');
+                data.ok ? 'ok' : 'error');
         } catch (err) {
             toast('Erreur réseau', 'error');
         }
