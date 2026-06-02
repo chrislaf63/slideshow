@@ -57,9 +57,10 @@ body::after {
 }
 .layers .slide.is-active { opacity: 1; }
 .layers .slide img {
-    max-width: 100%; max-height: 100%;
-    width: auto; height: auto;
-    object-fit: contain;            /* aucun recadrage, tout format respecté */
+    width: 100%; height: 100%;
+    object-fit: contain;            /* image entière, centrée, sans recadrage */
+    object-position: center;
+    min-width: 0; min-height: 0;    /* neutralise la taille mini auto de la grille */
     /* ombre douce pour décoller l'image du fond sombre */
     filter: drop-shadow(0 18px 50px rgba(0,0,0,.55));
 }
